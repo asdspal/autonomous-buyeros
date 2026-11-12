@@ -1,5 +1,3 @@
-import type { MandateDraft } from './schema.js';
-
 export interface CompileContext {
   currency: string;
   issuer: string;
