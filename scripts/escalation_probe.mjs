@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { generateKeyPairSync, randomUUID, sign as cryptoSign } from 'node:crypto';
 import { Client } from 'pg';
-import { canonical, rfc7638Thumbprint } from '@buyeros/core';
+import { canonical } from '@buyeros/core';
 
 const args = process.argv.slice(2);
 const take = (name, fallback) => {
@@ -98,7 +98,6 @@ const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'prime
 const jwk = publicKey.export({ format: 'jwk' });
 const key = await post('/api/keys', { jwk });
 if (key.status !== 201) { console.error('key registration failed', key); process.exit(1); }
-const thumbprint = rfc7638Thumbprint(jwk);
 const signApproval = (payload) => cryptoSign('sha256', Buffer.from(canonical(payload), 'utf8'), { key: privateKey, dsaEncoding: 'ieee-p1363' }).toString('base64url');
 
 async function resolve(setup, action) {
