@@ -16,7 +16,7 @@ if (!databaseUrl) {
 async function post(body) {
   const response = await fetch(new URL('/api/checkouts', base), {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...(process.env.SERVICE_TOKEN ? { 'x-service-token': process.env.SERVICE_TOKEN } : {}) },
     body: JSON.stringify(body),
   });
   const text = await response.text();

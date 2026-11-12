@@ -13,7 +13,7 @@ export async function POST(
   context: { params: Promise<{ mandateId: string }> },
 ) {
   const id = correlationId(request);
-  const denied = requireDemoOrService(request);
+  const denied = await requireDemoOrService(request);
   if (denied) return withCorrelation(denied, id);
   const { mandateId } = await context.params;
   const db = poolInstance();

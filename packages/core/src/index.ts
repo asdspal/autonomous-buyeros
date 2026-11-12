@@ -20,3 +20,5 @@ export * from './meter.js';
 export * from './paypal/adapter.js';
 export * from './paypal/rest.js';
 export * from './checkout/orchestrator.js';
+export * from './checkout/idempotency.js';
+export * from './checkout/ratelimit.js';

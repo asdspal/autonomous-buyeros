@@ -1,5 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import type { Pool } from 'pg';
+
+export interface Queryable {
+  query<R extends Record<string, unknown>>(
+    sql: string,
+    params?: unknown[],
+  ): Promise<{ rows: R[]; rowCount: number | null }>;
+}
+
 
 export type BeginResult =
   | { state: 'new' }
@@ -8,7 +15,7 @@ export type BeginResult =
   | { state: 'replay'; code: number; body: unknown };
 
 export async function beginIdempotency(
-  db: Pool,
+  db: Queryable,
   scope: string,
   key: string,
   requestHash: string,
@@ -39,7 +46,7 @@ export async function beginIdempotency(
 }
 
 export async function finishIdempotency(
-  db: Pool,
+  db: Queryable,
   scope: string,
   key: string,
   code: number,
@@ -54,7 +61,7 @@ export async function finishIdempotency(
   );
 }
 
-export async function clearIdempotency(db: Pool, scope: string, key: string): Promise<void> {
+export async function clearIdempotency(db: Queryable, scope: string, key: string): Promise<void> {
   await db.query(
     'DELETE FROM idempotency_record WHERE scope = $1 AND key = $2 AND response_body IS NULL',
     [scope, key],

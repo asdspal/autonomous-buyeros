@@ -14,7 +14,6 @@
     "declaration": false
   },
   "include": [
-    "apps/web/lib/**/*.ts",
     "packages/**/*.ts",
     "agents/**/*.ts",
     "services/**/*.ts",
@@ -22,8 +21,7 @@
     "test/**/*.ts"
   ],
   "exclude": [
-    "apps/web/app",
-    "apps/web/next.config.ts",
+    "apps/web",
     "test/e2e"
   ]
 }

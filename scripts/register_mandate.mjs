@@ -41,7 +41,7 @@ const signature = cryptoSign('sha256', Buffer.from(canonical(mandate), 'utf8'), 
 async function post(path, body) {
   const response = await fetch(new URL(path, base), {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-correlation-id': `m12-${randomUUID()}` },
+    headers: { 'content-type': 'application/json', ...(process.env.SERVICE_TOKEN ? { 'x-service-token': process.env.SERVICE_TOKEN } : {}), 'x-correlation-id': `m12-${randomUUID()}` },
     body: JSON.stringify(body),
   });
   const text = await response.text();

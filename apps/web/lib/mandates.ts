@@ -1,16 +1,19 @@
 import { randomUUID } from 'node:crypto';
 import type { Pool } from 'pg';
 import { canonical, sha256Hex, type MandateDraft } from '@buyeros/core';
+import { serviceAuthorised, sessionPrincipal } from './auth';
 
 export const DEMO_PRINCIPAL_ID = 'prn_demo';
 
-export function requireDemoOrService(request: Request): Response | null {
-  if (process.env.DEMO_MODE === 'on') return null;
-  const token = request.headers.get('x-service-token');
-  if (!token || token !== process.env.SERVICE_TOKEN) {
-    return Response.json({ error: 'UNAUTHENTICATED' }, { status: 401 });
-  }
-  return null;
+export function requireDemoOrService(request: Request): Promise<Response | null> {
+  return requirePrincipalOrService(request);
+}
+
+async function requirePrincipalOrService(request: Request): Promise<Response | null> {
+  if (serviceAuthorised(request)) return null;
+  const principal = await sessionPrincipal(request);
+  if (principal) return null;
+  return Response.json({ error: 'UNAUTHENTICATED' }, { status: 401 });
 }
 
 export async function ensurePrincipal(db: Pool): Promise<void> {

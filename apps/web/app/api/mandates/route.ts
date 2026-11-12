@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   const id = correlationId(request);
-  const denied = requireDemoOrService(request);
+  const denied = await requireDemoOrService(request);
   if (denied) return withCorrelation(denied, id);
 
   const body = (await request.json().catch(() => ({}))) as {

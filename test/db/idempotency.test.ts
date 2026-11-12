@@ -6,7 +6,7 @@ import {
   beginIdempotency,
   clearIdempotency,
   finishIdempotency,
-} from '../../apps/web/lib/idempotency.js';
+} from '../../packages/core/src/checkout/idempotency.js';
 
 const connectionString = process.env.DATABASE_URL_TEST ?? process.env.DATABASE_URL;
 

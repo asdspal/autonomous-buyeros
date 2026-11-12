@@ -44,6 +44,7 @@ export default function MandateNewForm() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    fetch('/api/auth/demo', { method: 'POST' }).catch(() => undefined);
     createBrowserSigner()
       .then((value) => setSigner(value))
       .catch(() => setError('This browser cannot generate a P-256 signing key.'));

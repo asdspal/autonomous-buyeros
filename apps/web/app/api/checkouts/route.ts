@@ -1,12 +1,18 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { PayPalRestAdapter, canonical, runCheckout, seal, sha256Hex } from '@buyeros/core';
-import { correlationId, withCorrelation } from '../../../lib/correlation';
 import {
+  PayPalRestAdapter,
   beginIdempotency,
+  canonical,
   clearIdempotency,
   finishIdempotency,
-} from '../../../lib/idempotency';
+  rateLimit,
+  runCheckout,
+  seal,
+  sha256Hex,
+} from '@buyeros/core';
+import { correlationId, withCorrelation } from '../../../lib/correlation';
+import { agentAuth, serviceAuthorised, sessionPrincipal } from '../../../lib/auth';
 import {
   ensureSkeletonWorld,
   insertCheckout,
@@ -23,14 +29,55 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   const id = correlationId(request);
 
-  if (process.env.DEMO_MODE !== 'on') {
-    const token = request.headers.get('x-service-token');
-    if (!token || token !== process.env.SERVICE_TOKEN) {
-      return withCorrelation(NextResponse.json({ error: 'UNAUTHENTICATED' }, { status: 401 }), id);
-    }
+  const raw = await request.text();
+  let body: { requestKey?: string } = {};
+  try {
+    body = raw ? (JSON.parse(raw) as { requestKey?: string }) : {};
+  } catch {
+    return withCorrelation(NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 }), id);
   }
 
-  const body = (await request.json().catch(() => ({}))) as { requestKey?: string };
+  const hasAgentHeaders =
+    request.headers.has('x-agent-jwk') || request.headers.has('x-agent-signature');
+  let identity: string | null = null;
+  if (hasAgentHeaders) {
+    const agent = await agentAuth(request, body, poolInstance());
+    if (!agent.ok) {
+      return withCorrelation(
+        NextResponse.json(
+          { error: { code: agent.code, message: 'agent key does not match a registered agent' } },
+          { status: 403 },
+        ),
+        id,
+      );
+    }
+    identity = agent.agentThumbprint!;
+    const decision = await rateLimit(poolInstance(), 'checkout-agent', identity, 10);
+    if (!decision.allowed) {
+      return withCorrelation(
+        NextResponse.json(
+          { error: { code: 'RATE_LIMITED', retry_after_seconds: decision.retryAfterSeconds } },
+          { status: 429, headers: { 'retry-after': String(decision.retryAfterSeconds) } },
+        ),
+        id,
+      );
+    }
+  } else if (serviceAuthorised(request) || (await sessionPrincipal(request))) {
+    identity = 'prn_demo';
+    const decision = await rateLimit(poolInstance(), 'checkout-principal', identity, 20);
+    if (!decision.allowed) {
+      return withCorrelation(
+        NextResponse.json(
+          { error: { code: 'RATE_LIMITED', retry_after_seconds: decision.retryAfterSeconds } },
+          { status: 429, headers: { 'retry-after': String(decision.retryAfterSeconds) } },
+        ),
+        id,
+      );
+    }
+  } else {
+    return withCorrelation(NextResponse.json({ error: 'UNAUTHENTICATED' }, { status: 401 }), id);
+  }
+
   const requestKey =
     typeof body.requestKey === 'string' && body.requestKey.length >= 16
       ? body.requestKey

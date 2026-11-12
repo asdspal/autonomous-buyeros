@@ -1,11 +1,11 @@
 {
-  "runAt": "2026-11-12T13:31:39.631Z",
+  "runAt": "2026-11-12T13:47:40.557Z",
   "commit": "local",
   "cases": 55,
   "passed": 55,
   "accuracy": 1,
   "reasonCodeAccuracy": 1,
-  "p95Ms": 2.1715,
+  "p95Ms": 0.1747,
   "budgetMs": 50,
   "provenance": {
     "live": 0,

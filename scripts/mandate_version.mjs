@@ -42,7 +42,7 @@ function mandate() {
 async function post(path, body) {
   const response = await fetch(new URL(path, base), {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...(process.env.SERVICE_TOKEN ? { 'x-service-token': process.env.SERVICE_TOKEN } : {}) },
     body: JSON.stringify(body),
   });
   return { status: response.status, body: await response.json() };

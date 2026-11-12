@@ -20,6 +20,9 @@ const draft = {
 };
 
 test('signing sends only the public key and no private material', async ({ page }) => {
+  await page.route('**/api/auth/demo', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{"authenticated":true}' }),
+  );
   await page.route('**/api/mandates/compile', async (route) => {
     await route.fulfill({
       status: 200,
