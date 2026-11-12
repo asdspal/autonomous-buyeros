@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     mandate?: unknown;
     signature?: unknown;
     publicJwk?: unknown;
+    previousMandateId?: unknown;
   };
 
   const parsed = parseMandate(body.mandate);
@@ -74,6 +75,8 @@ export async function POST(request: Request) {
       jwk: body.publicJwk,
       principalKeyThumbprint: verified.thumbprint!,
       agentId,
+      previousMandateId:
+        typeof body.previousMandateId === 'string' ? body.previousMandateId : undefined,
     });
     return withCorrelation(
       NextResponse.json(
@@ -84,6 +87,12 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     const code = (error as { code?: string }).code;
+    if (code === 'PREV_NOT_FOUND') {
+      return withCorrelation(
+        NextResponse.json({ error: { code: 'NOT_FOUND', message: 'previous mandate not found' } }, { status: 404 }),
+        id,
+      );
+    }
     if (code === '23505') {
       return withCorrelation(
         NextResponse.json(

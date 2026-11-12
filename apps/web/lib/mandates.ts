@@ -131,30 +131,52 @@ export interface StoreMandateInput {
   jwk: unknown;
   principalKeyThumbprint: string;
   agentId: string;
+  previousMandateId?: string;
 }
 
 export async function storeMandate(
   db: Pool,
   input: StoreMandateInput,
 ): Promise<{ mandateId: string; version: number; clauses: number }> {
-  const { mandate, signature, jwk, principalKeyThumbprint, agentId } = input;
+  const { mandate, signature, jwk, principalKeyThumbprint, agentId, previousMandateId } = input;
   const c = mandate.constraints;
   const clauses = clausesFromMandate(mandate);
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+    let version = 1;
+    let prevVersionId: string | null = null;
+    if (previousMandateId) {
+      const previous = await client.query<{ id: string; version: number; principal_id: string }>(
+        'SELECT id, version, principal_id FROM mandate WHERE id = $1 FOR UPDATE',
+        [previousMandateId],
+      );
+      if (!previous.rowCount) throw Object.assign(new Error('PREV_NOT_FOUND'), { code: 'PREV_NOT_FOUND' });
+      const prev = previous.rows[0]!;
+      if (prev.principal_id !== DEMO_PRINCIPAL_ID) {
+        throw Object.assign(new Error('TENANCY'), { code: 'TENANCY' });
+      }
+      version = prev.version + 1;
+      prevVersionId = prev.id;
+      await client.query(
+        `UPDATE mandate SET status = 'REVOKED', revoked_at = now() WHERE id = $1 AND status = 'ACTIVE'`,
+        [prev.id],
+      );
+    }
     await registerPrincipalKey(client as unknown as Pool, jwk, principalKeyThumbprint);
     await client.query(
       `INSERT INTO mandate (
-         id, principal_id, agent_id, status, currency, purchase_total_minor,
+         id, principal_id, agent_id, version, prev_version_id, status, currency, purchase_total_minor,
          per_txn_minor, max_txns, meter_total_minor, meter_per_call_minor, meter_max_calls,
          unknown_attribute_policy, constraints, nonce, iat_epoch, exp_epoch, signature,
          signed_payload_sha256
-       ) VALUES ($1,$2,$3,'ACTIVE',$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14,$15,$16,$17)`,
+       ) VALUES ($1,$2,$3,$4,$5,'ACTIVE',$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb,$15,$16,$17,$18,$19)`,
       [
         mandate.mandate_id,
         DEMO_PRINCIPAL_ID,
         agentId,
+        version,
+        prevVersionId,
         c.budget.currency,
         c.budget.total_minor,
         c.budget.per_txn_minor,
@@ -183,7 +205,7 @@ export async function storeMandate(
       [mandate.mandate_id],
     );
     await client.query('COMMIT');
-    return { mandateId: mandate.mandate_id, version: 1, clauses: clauses.length };
+    return { mandateId: mandate.mandate_id, version, clauses: clauses.length };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

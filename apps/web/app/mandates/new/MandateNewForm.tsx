@@ -39,6 +39,8 @@ export default function MandateNewForm() {
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [previousMandateId, setPreviousMandateId] = useState<string | null>(null);
+  const [version, setVersion] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -77,6 +79,17 @@ export default function MandateNewForm() {
     }
   }
 
+  function edit(mutate: (next: MandateDraft) => void) {
+    if (!draft) return;
+    const next = structuredClone(draft);
+    mutate(next);
+    next.mandate_id = `mdt_${crypto.randomUUID().replaceAll('-', '').slice(0, 16)}`;
+    next.nonce = `n_${crypto.randomUUID().replaceAll('-', '')}`;
+    setDraft(next);
+    setConfirmed(false);
+    setResult(null);
+  }
+
   async function sign() {
     if (!signer || !draft || !confirmed) return;
     setBusy(true);
@@ -87,14 +100,21 @@ export default function MandateNewForm() {
       const response = await fetch('/api/mandates', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mandate: draft, signature, publicJwk: signer.publicJwk }),
+        body: JSON.stringify({
+          mandate: draft,
+          signature,
+          publicJwk: signer.publicJwk,
+          previousMandateId: previousMandateId ?? undefined,
+        }),
       });
       const body = await response.json();
       if (!response.ok) {
         setError(body.error?.message ?? 'The mandate was refused.');
         return;
       }
-      setResult(`Mandate ${body.mandateId} is ACTIVE with ${body.clauses} clauses.`);
+      setPreviousMandateId(body.mandateId);
+      setVersion(body.version);
+      setResult(`Mandate ${body.mandateId} is ACTIVE (version ${body.version}) with ${body.clauses} clauses.`);
     } catch {
       setError('Signing or registration failed.');
     } finally {
@@ -132,8 +152,9 @@ export default function MandateNewForm() {
       {draft ? (
         <>
           <h3>Read every clause before signing</h3>
+          <p className="budget">Editing any value re-signs a new version; the previous version is revoked.</p>
           <table>
-            <caption className="sr-only">Mandate clauses</caption>
+            <caption className="sr-only">Mandate clauses, editable before signing</caption>
             <thead>
               <tr>
                 <th scope="col">Clause</th>
@@ -141,6 +162,112 @@ export default function MandateNewForm() {
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <th scope="row"><label htmlFor="total">Total spend (minor)</label></th>
+                <td>
+                  <input
+                    id="total"
+                    type="number"
+                    min={1}
+                    value={draft.constraints.budget.total_minor}
+                    onChange={(event) =>
+                      edit((next) => {
+                        const value = Math.max(1, Number(event.target.value) || 1);
+                        next.constraints.budget.total_minor = value;
+                        next.constraints.budget.per_txn_minor = Math.min(
+                          next.constraints.budget.per_txn_minor,
+                          value,
+                        );
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label htmlFor="perTxn">Per transaction (minor)</label></th>
+                <td>
+                  <input
+                    id="perTxn"
+                    type="number"
+                    min={1}
+                    value={draft.constraints.budget.per_txn_minor}
+                    onChange={(event) =>
+                      edit((next) => {
+                        next.constraints.budget.per_txn_minor = Math.max(1, Number(event.target.value) || 1);
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label htmlFor="maxTxns">Transactions</label></th>
+                <td>
+                  <input
+                    id="maxTxns"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={draft.constraints.budget.max_txns}
+                    onChange={(event) =>
+                      edit((next) => {
+                        next.constraints.budget.max_txns = Math.min(20, Math.max(1, Number(event.target.value) || 1));
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label htmlFor="meterTotal">Tool allowance (minor)</label></th>
+                <td>
+                  <input
+                    id="meterTotal"
+                    type="number"
+                    min={0}
+                    value={draft.constraints.metering.total_minor}
+                    onChange={(event) =>
+                      edit((next) => {
+                        next.constraints.metering.total_minor = Math.max(0, Number(event.target.value) || 0);
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label htmlFor="maxCalls">Tool calls</label></th>
+                <td>
+                  <input
+                    id="maxCalls"
+                    type="number"
+                    min={0}
+                    max={500}
+                    value={draft.constraints.metering.max_calls}
+                    onChange={(event) =>
+                      edit((next) => {
+                        next.constraints.metering.max_calls = Math.min(500, Math.max(0, Number(event.target.value) || 0));
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label htmlFor="unknownPolicy">Unknown attributes</label></th>
+                <td>
+                  <select
+                    id="unknownPolicy"
+                    value={draft.constraints.unknown_attribute_policy}
+                    onChange={(event) =>
+                      edit((next) => {
+                        next.constraints.unknown_attribute_policy = event.target
+                          .value as 'deny' | 'escalate' | 'allow';
+                      })
+                    }
+                  >
+                    <option value="deny">deny</option>
+                    <option value="escalate">escalate</option>
+                    <option value="allow">allow</option>
+                  </select>
+                </td>
+              </tr>
               {rows.map(([clause, value]) => (
                 <tr key={`${clause}-${value}`}>
                   <th scope="row">{clause}</th>
@@ -149,6 +276,7 @@ export default function MandateNewForm() {
               ))}
             </tbody>
           </table>
+          <p className="budget">current version to sign: {version + (previousMandateId ? 1 : 0)}</p>
 
           <p>
             <input
