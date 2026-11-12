@@ -9,5 +9,5 @@ var/
 .env.*
 !.env.example
 .DS_Store
-keys/
-keys/
+//keys/
+/keys/
