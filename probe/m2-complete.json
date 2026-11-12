@@ -1,0 +1,15 @@
+{
+  "run": "2026-11-12",
+  "deployed": "https://buyeros-web.onrender.com",
+  "M2.1": "idempotent checkout: 1 checkout, 1 authorization, stored replay body, reused-key 409",
+  "M2.2": "session magic link, agent JWS (MV-R016), origin guard, 10/min agent / 20/min principal with 429 + Retry-After",
+  "M2.3": "vault setup-token returns only the approve link; payment-token stores the vault id server-side",
+  "M2.4": "verdict-first settlement; vrd_<verdictId> idempotency; amount mismatch refused before money",
+  "M2.5": "assert_money_guards() in health; browser-open guard on INSERT and UPDATE; static capture reachability",
+  "M2.6": "signed escalation: decline -> VOIDED, approve -> CAPTURED 1200; timestamp is the signed one",
+  "M2.7": "retry 5xx/429 with the same key; breaker opens at 5 failures for 30s; state on /api/health",
+  "M2.8": "webhook verification via PayPal; CAPTURE.COMPLETED delivered, verified and PROCESSED in webhook_event",
+  "M2.9": "49h-old real authorization voided by /api/jobs/reconcile-holds; audit row; in-service scheduler when ENABLE_JOBS=on",
+  "M2.10": "5 MCP tools exactly; get_mandate bound to agent cnf; unsigned JSON-RPC -32001; no dangerous tools",
+  "gates": {"tests": 97, "db_tests": 17, "bench": "55/55", "ci": "green"}
+}
