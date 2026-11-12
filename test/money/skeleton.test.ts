@@ -167,3 +167,23 @@ test('an authorization whose amount differs from the sealed cart is refused befo
   );
   assert.deepEqual(store.events.slice(-1), ['checkout:NEEDS_ATTENTION']);
 });
+
+test('captureAuthorization is only reachable from the settle path', async () => {
+  const { readFileSync, readdirSync, statSync } = await import('node:fs');
+  const path = await import('node:path');
+  const root = 'packages/core/src';
+  const offenders: string[] = [];
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(dir)) {
+      const full = path.join(dir, entry);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (full.endsWith('.ts')) {
+        const source = readFileSync(full, 'utf8');
+        if (full.includes('/paypal/') || full.includes('/checkout/')) continue;
+        if (/\.captureAuthorization\s*\(/.test(source)) offenders.push(full);
+      }
+    }
+  };
+  walk(root);
+  assert.deepEqual(offenders, []);
+});

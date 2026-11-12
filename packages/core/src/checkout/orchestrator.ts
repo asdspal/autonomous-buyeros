@@ -1,7 +1,7 @@
 import { evaluate } from '../auditor.js';
 import type { Cart, Catalog, Mandate, Verdict } from '../types.js';
 import type { AuthorizationRecord, PayPalAdapter } from '../paypal/adapter.js';
-import { GuardError } from '../types.js';
+import { assertSettlePreconditions, attentionReasonFromError } from './guards.js';
 
 export interface CheckoutStore {
   saveAuthorization(record: AuthorizationRecord): Promise<void>;
@@ -45,11 +45,6 @@ export async function runCheckout(input: RunCheckoutInput): Promise<RunCheckoutR
   });
   await store.saveAuthorization(authorization);
 
-  if (authorization.amountMinor !== expectedTotal) {
-    await store.markCheckout('NEEDS_ATTENTION');
-    throw new GuardError('AMOUNT_MISMATCH');
-  }
-
   const startedAt = process.hrtime.bigint();
   const verdict = evaluate(mandate, cart, catalog, usedNonces, nowEpoch, 0);
   const latencyUs = Number((process.hrtime.bigint() - startedAt) / 1000n);
@@ -57,6 +52,7 @@ export async function runCheckout(input: RunCheckoutInput): Promise<RunCheckoutR
   const verdictId = await store.saveVerdict(verdict, latencyUs);
 
   try {
+    assertSettlePreconditions({ verdict, authorization, expectedTotalMinor: expectedTotal });
     if (verdict.decision === 'CAPTURE') {
       await adapter.captureAuthorization(
         authorization.authorizationId,
@@ -80,8 +76,13 @@ export async function runCheckout(input: RunCheckoutInput): Promise<RunCheckoutR
     }
     return { authorization, verdict, verdictId, settlement: 'held' };
   } catch (error) {
+    const reason = attentionReasonFromError(error);
+    const isRefusal =
+      reason === 'AMOUNT_MISMATCH' ||
+      reason === 'CAPTURE_WITHOUT_VERDICT' ||
+      reason === 'PAYMENT_SOURCE_REQUIRES_ACTION';
     await store.markCheckout(
-      verdict.decision === 'CAPTURE' ? 'FAILED_PAYPAL' : 'NEEDS_ATTENTION',
+      !isRefusal && verdict.decision === 'CAPTURE' ? 'FAILED_PAYPAL' : 'NEEDS_ATTENTION',
     );
     throw error;
   }

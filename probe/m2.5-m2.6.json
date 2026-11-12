@@ -1,0 +1,14 @@
+{
+  "run": "2026-11-12",
+  "M2.5": {
+    "migration": "0004_money_guards.sql (browser-open guard on UPDATE, assert_money_guards())",
+    "boot_assertion": "GET /api/health runs assert_money_guards() and returns money_guards",
+    "static_check": "captureAuthorization is only reachable from packages/core checkout/paypal paths",
+    "attention_reasons": "PAYMENT_SOURCE_REQUIRES_ACTION, AMOUNT_MISMATCH, CAPTURE_WITHOUT_VERDICT, CATALOG/BROWSER/MODEL/PAYPAL unavailable"
+  },
+  "M2.6": {
+    "signature": "approval verifies over {verdictId, decision, decidedAtEpoch, nonce}; a changed decision or verdict fails",
+    "live": "decline -> authorization VOIDED, escalation DECLINED; approve -> CAPTURED 1200 minor, escalation APPROVED; both checkouts SETTLED",
+    "operator": "no operator path exists; only a principal session or service token may resolve"
+  }
+}
