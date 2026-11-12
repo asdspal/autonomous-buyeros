@@ -1,0 +1,30 @@
+{
+  "id": "36X06641XC3865734",
+  "customer": {
+    "id": "fRfeiolQTr"
+  },
+  "status": "PAYER_ACTION_REQUIRED",
+  "payment_source": {
+    "paypal": {
+      "description": "BuyerOS sandbox wallet",
+      "usage_pattern": "IMMEDIATE",
+      "permit_multiple_payment_tokens": false,
+      "usage_type": "MERCHANT",
+      "customer_type": "CONSUMER"
+    }
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v3/vault/setup-tokens/36X06641XC3865734",
+      "rel": "self",
+      "method": "GET",
+      "encType": "application/json"
+    },
+    {
+      "href": "https://www.sandbox.paypal.com/agreements/approve?approval_session_id=36X06641XC3865734",
+      "rel": "approve",
+      "method": "GET",
+      "encType": "application/json"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "run": "2026-11-12",
+  "M0.5": {
+    "harness": "playwright 1.65.0 + axe-core 4.14.0, projects e2e and a11y",
+    "routes_covered_now": ["/", "/cases"],
+    "result": "6 passed (2 axe WCAG 2.2 AA, 1 landmark/title, 1 stylesheet, 2 keyboard)",
+    "note": "the other three routes arrive in M1.8/M3 and are added to the same spec"
+  },
+  "M0.6": {
+    "live_run": {
+      "checkout_id": "ckt_2b574a36-8680-4bd8-9db4-56b267663af1",
+      "verdict_id": "vrd_0ceb716d-8ee9-4a7e-ba48-8344c93ea38f",
+      "decision": "VOID",
+      "reason_codes": ["MV-R002"],
+      "paypal_order": "4KE48420P4531394J",
+      "paypal_authorization": "3X913613EH4567331",
+      "authorization_after": "VOIDED",
+      "checkout_after": "SETTLED",
+      "replay": "same requestKey returned the stored checkout, no second authorization"
+    },
+    "ordering_test": "test/money/skeleton.test.ts asserts authorize -> verdict stored -> void (and capture for a compliant cart)",
+    "migration_added": "0002_clause_sources.sql widens verdict_clause.source to the auditor vocabulary"
+  },
+  "M0.4": {
+    "local": "next build, docker image, container /api/health 200 with database up and correlation echo",
+    "pending": "Render account connection; deploy + webhook registration + smoke against DEMO_URL"
+  },
+  "gates": {"typecheck": "pass", "lint": "pass", "build": "pass", "unit": "21 pass, 1 db skip without env", "db": "7 pass with env"}
+}

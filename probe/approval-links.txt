@@ -1,0 +1,7 @@
+# Sandbox approval links (US business merchant)
+
+## vault-on-success authorize order (P2)
+no link
+
+## setup token (vault)
+no link

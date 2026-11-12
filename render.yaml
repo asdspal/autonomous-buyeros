@@ -1,0 +1,60 @@
+databases:
+  - name: buyeros-db
+    plan: basic-256mb
+    databaseName: buyeros
+    user: buyeros
+
+services:
+  - type: web
+    name: buyeros-web
+    runtime: docker
+    plan: standard
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: false
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: buyeros-db
+          property: connectionString
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_API_BASE
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: PAYPAL_VAULT_ID
+        sync: false
+      - key: CHANNEL3_API_KEY
+        sync: false
+      - key: KERNEL_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: fireworks
+      - key: LLM_BASE_URL
+        value: https://api.fireworks.ai/inference/v1
+      - key: LLM_MODEL
+        value: accounts/fireworks/models/deepseek-v4p1-flash-1017
+      - key: LLM_API_KEY
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: SERVICE_TOKEN
+        sync: false
+      - key: SHIPPING_PROFILE_KEY
+        sync: false
+      - key: VOUCHER_SIGNING_KEY
+        sync: false
+      - key: DEMO_MODE
+        value: "on"
+      - key: KERNEL_TIMEOUT_S
+        value: "300"
+      - key: METER_TTL_S
+        value: "60"
+      - key: EVIDENCE_BUCKET_DIR
+        value: ./var/evidence
+      - key: LOG_LEVEL
+        value: info

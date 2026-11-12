@@ -1,0 +1,10 @@
+{
+  "vault_id": "5c341502c96849732",
+  "vaulted_order": "1K2142128H004833G",
+  "authorization": "8FD226018W1642840",
+  "payer_action_required": false,
+  "order_status_on_create": "COMPLETED",
+  "authorization_status_on_create": "CREATED",
+  "void": "204",
+  "authorization_after_void": "VOIDED"
+}

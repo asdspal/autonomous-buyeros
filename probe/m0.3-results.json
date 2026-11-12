@@ -1,0 +1,19 @@
+{
+  "run": "2026-11-12",
+  "postgres": "17-alpine, docker compose service db, host port 55432",
+  "schema": "db/migrations/0001_init.sql, 28 tables, 11 plpgsql triggers, 1 view",
+  "migration_runner": "scripts/migrate.mjs (checksum-guarded, transaction per migration)",
+  "checks": [
+    {"test": "append-only verdict/verdict_clause/audit_event", "ok": true},
+    {"test": "no capture without stored verdict (R-004)", "ok": true},
+    {"test": "no authorization while browser open (R-084)", "ok": true},
+    {"test": "voucher amount equals debited price (R-075)", "ok": true},
+    {"test": "ISO-4217 uppercase currency check", "ok": true},
+    {"test": "one open browser session per checkout", "ok": true},
+    {"test": "checkout requires an ACTIVE mandate (MV-R014)", "ok": true}
+  ],
+  "port_notes": [
+    "STRICT dropped; JSONB columns; TIMESTAMPTZ + now(); GLOB -> regex; plpgsql triggers",
+    "meter_session moved before paypal_authorization; meter_entry<->voucher FK added via ALTER"
+  ]
+}

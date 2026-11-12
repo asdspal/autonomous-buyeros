@@ -1,0 +1,57 @@
+{
+  "run": "2026-11-12",
+  "environment": "api-m.sandbox.paypal.com",
+  "merchant": "new US business sandbox app",
+  "checks": [
+    {
+      "step": "P1 oauth token",
+      "ok": true
+    },
+    {
+      "step": "P2 create order intent=AUTHORIZE",
+      "ok": true,
+      "order": "9K919305UK1046936"
+    },
+    {
+      "step": "P3 authorize",
+      "ok": true,
+      "authorization": "8YC88000Y76311114"
+    },
+    {
+      "step": "P5 void",
+      "ok": true,
+      "result": "204, status VOIDED"
+    },
+    {
+      "step": "P6 partial capture 10.00 (final_capture=false)",
+      "ok": true,
+      "result": "COMPLETED"
+    },
+    {
+      "step": "P6 final capture 8.90 (final_capture=true)",
+      "ok": true,
+      "result": "COMPLETED, authorization CAPTURED"
+    },
+    {
+      "step": "P2 vaulted payment source (A-001)",
+      "ok": true,
+      "result": "payment token created; vaulted AUTHORIZE order returned COMPLETED with an authorization in CREATED and no payer action; void 204, VOIDED",
+      "vault_id_prefix": "5c341502..."
+    }
+  ],
+  "not_run": [
+    {
+      "step": "P7/P8/P9 disputes",
+      "reason": "requires a sandbox dispute and a webhook id"
+    }
+  ],
+  "findings": [
+    "A vaulted source cannot yet be tested; payer-approval-per-checkout works.",
+    "Partial capture against an AUTHORIZE hold works, including two captures and final_capture.",
+    "The original errors were caused by an India merchant app, not by the code."
+  ],
+  "decision": {
+    "A-001": "PASSED after enabling merchant-level save-payment-methods eligibility in the sandbox business account",
+    "adapter_note": "with payment_source.paypal.vault_id, creating an intent=AUTHORIZE order performs the authorization; read the authorization from the create response instead of calling /authorize (that call returns 422)."
+  }
+}
