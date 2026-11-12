@@ -1,0 +1,16 @@
+{
+  "run": "2026-11-12",
+  "demo_url": "https://buyeros-web.onrender.com",
+  "M1.8": {
+    "versioning": "v1 201, v2 201 (version 2, prev_version_id), previous row REVOKED, revoke 200, repeat 409 MV-R014, audit row present",
+    "signing": "browser signer non-extractable; e2e asserts no 'd' in the POST body",
+    "a11y": "7/7 against the deployed URL including /mandates/new"
+  },
+  "M2.1": {
+    "concurrent_same_key": "first 200, second 409 in-flight with Retry-After",
+    "replay": "200 with the stored body and the same checkout id",
+    "reused_key_other_body": "409 IDEMPOTENCY_KEY_REUSED",
+    "different_key": "new checkout",
+    "db": {"checkouts": 1, "authorizations": 1, "idempotency_records": 1, "stored_responses": 1}
+  }
+}
