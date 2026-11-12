@@ -30,16 +30,16 @@ export async function POST(request: Request) {
   const id = correlationId(request);
 
   const raw = await request.text();
-  let body: { requestKey?: string } = {};
+  let parsed: unknown;
   try {
-    body = raw ? (JSON.parse(raw) as { requestKey?: string }) : {};
+    parsed = raw ? JSON.parse(raw) : {};
   } catch {
     return withCorrelation(NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 }), id);
   }
+  const body = parsed as { requestKey?: string };
 
   const hasAgentHeaders =
     request.headers.has('x-agent-jwk') || request.headers.has('x-agent-signature');
-  let identity: string | null = null;
   if (hasAgentHeaders) {
     const agent = await agentAuth(request, body, poolInstance());
     if (!agent.ok) {
@@ -51,8 +51,12 @@ export async function POST(request: Request) {
         id,
       );
     }
-    identity = agent.agentThumbprint!;
-    const decision = await rateLimit(poolInstance(), 'checkout-agent', identity, 10);
+    const decision = await rateLimit(
+      poolInstance(),
+      'checkout-agent',
+      agent.agentThumbprint!,
+      10,
+    );
     if (!decision.allowed) {
       return withCorrelation(
         NextResponse.json(
@@ -63,8 +67,7 @@ export async function POST(request: Request) {
       );
     }
   } else if (serviceAuthorised(request) || (await sessionPrincipal(request))) {
-    identity = 'prn_demo';
-    const decision = await rateLimit(poolInstance(), 'checkout-principal', identity, 20);
+    const decision = await rateLimit(poolInstance(), 'checkout-principal', 'prn_demo', 20);
     if (!decision.allowed) {
       return withCorrelation(
         NextResponse.json(
