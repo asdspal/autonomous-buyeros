@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { generateKeyPairSync, randomUUID, sign as cryptoSign } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { Client } from 'pg';
 import { canonical } from '@buyeros/core';
 
