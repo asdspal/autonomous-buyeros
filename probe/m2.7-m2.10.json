@@ -1,0 +1,23 @@
+{
+  "run": "2026-11-12",
+  "M2.7": {
+    "retry": "5xx/429 retried up to 3 attempts with the same idempotency key; 422/404 never retried",
+    "breaker": "opens after 5 consecutive failures for 30s, half-open afterwards; state exposed on /api/health",
+    "tests": "5/5"
+  },
+  "M2.8": {
+    "verification": "PayPal verify-webhook-signature called with raw body and transmission headers; fails closed on missing headers, non-200 or non-SUCCESS",
+    "route": "dedupes on webhook_event.id, maps AUTHORIZATION.VOIDED/CREATED and CAPTURE.COMPLETED/DENIED, audits each event",
+    "tests": "3/3"
+  },
+  "M2.9": {
+    "live": "a real authorization backdated 49h was voided by /api/jobs/reconcile-holds; DB VOIDED; audit authorization.reconciled_void",
+    "scheduler": "instrumentation.ts runs every 15 min when ENABLE_JOBS=on"
+  },
+  "M2.10": {
+    "tools": ["request_checkout","get_verdict","get_mandate","get_quote","spend_tool_credit"],
+    "dangerous_tools": "none",
+    "binding": "agent JWS thumbprint must equal mandate.agent_cnf; unsigned JSON-RPC gets -32001",
+    "live": "tools/list returns 5; get_mandate ACTIVE; missing verdict isError; anonymous -32001"
+  }
+}

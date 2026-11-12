@@ -18,7 +18,7 @@ export interface PaymentTokenResult {
   payerId?: string;
 }
 
-async function accessToken(credentials: PayPalCredentials): Promise<string> {
+export async function accessToken(credentials: PayPalCredentials): Promise<string> {
   const fetchImpl = credentials.fetchImpl ?? fetch;
   const basic = Buffer.from(`${credentials.clientId}:${credentials.clientSecret}`).toString('base64');
   const response = await fetchImpl(`${credentials.baseUrl}/v1/oauth2/token`, {

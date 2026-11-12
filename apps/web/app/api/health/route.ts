@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { correlationId, withCorrelation } from '../../../lib/correlation';
 import { pingDatabase } from '../../../lib/db';
 import { poolInstance } from '../../../lib/skeleton';
+import { paypalBreakerState } from '../../../lib/paypal';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
     database: db,
     money_guards: guards,
     breakers: {
-      paypal: 'closed',
+      paypal: paypalBreakerState(),
       kernel: 'closed',
       channel3: 'closed',
       model: 'closed',

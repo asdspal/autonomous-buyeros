@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import {
-  PayPalRestAdapter,
   approvalPayload,
   canonical,
   rfc7638Thumbprint,
@@ -10,6 +9,7 @@ import {
 } from '@buyeros/core';
 import { correlationId, withCorrelation } from '../../../../../lib/correlation';
 import { sessionPrincipal, serviceAuthorised } from '../../../../../lib/auth';
+import { paypalAdapter } from '../../../../../lib/paypal';
 import { poolInstance } from '../../../../../lib/skeleton';
 
 export const runtime = 'nodejs';
@@ -109,12 +109,7 @@ export async function POST(
   };
 
   const escalationId = `esc_${randomUUID()}`;
-  const adapter = new PayPalRestAdapter({
-    clientId: process.env.PAYPAL_CLIENT_ID!,
-    clientSecret: process.env.PAYPAL_CLIENT_SECRET!,
-    baseUrl: process.env.PAYPAL_API_BASE!,
-    vaultId: process.env.PAYPAL_VAULT_ID,
-  });
+  const adapter = paypalAdapter();
   const moneyKey = `esc_${escalationId}`;
   try {
     if (decision === 'CAPTURE') {
