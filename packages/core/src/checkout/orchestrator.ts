@@ -1,6 +1,7 @@
 import { evaluate } from '../auditor.js';
 import type { Cart, Catalog, Mandate, Verdict } from '../types.js';
 import type { AuthorizationRecord, PayPalAdapter } from '../paypal/adapter.js';
+import { GuardError } from '../types.js';
 
 export interface CheckoutStore {
   saveAuthorization(record: AuthorizationRecord): Promise<void>;
@@ -35,6 +36,7 @@ export async function runCheckout(input: RunCheckoutInput): Promise<RunCheckoutR
   const { mandate, cart, catalog, usedNonces, nowEpoch, adapter, store } = input;
   const journal = input.journal ?? [];
 
+  const expectedTotal = cartTotalMinor(cart);
   const authorization = await adapter.createAuthorization({
     amountMinor: cartTotalMinor(cart),
     currency: cart.currency,
@@ -42,6 +44,11 @@ export async function runCheckout(input: RunCheckoutInput): Promise<RunCheckoutR
     customId: `cart:${cart.cart_hash ?? 'unsealed'}`,
   });
   await store.saveAuthorization(authorization);
+
+  if (authorization.amountMinor !== expectedTotal) {
+    await store.markCheckout('NEEDS_ATTENTION');
+    throw new GuardError('AMOUNT_MISMATCH');
+  }
 
   const startedAt = process.hrtime.bigint();
   const verdict = evaluate(mandate, cart, catalog, usedNonces, nowEpoch, 0);
@@ -51,7 +58,12 @@ export async function runCheckout(input: RunCheckoutInput): Promise<RunCheckoutR
 
   try {
     if (verdict.decision === 'CAPTURE') {
-      await adapter.captureAuthorization(authorization.authorizationId, cartTotalMinor(cart), true);
+      await adapter.captureAuthorization(
+        authorization.authorizationId,
+        expectedTotal,
+        true,
+        `vrd_${verdictId}`,
+      );
       await store.markAuthorizationStatus?.(
         authorization.authorizationId,
         'CAPTURED',
@@ -61,7 +73,7 @@ export async function runCheckout(input: RunCheckoutInput): Promise<RunCheckoutR
       return { authorization, verdict, verdictId, settlement: 'captured' };
     }
     if (verdict.decision === 'VOID') {
-      await adapter.voidAuthorization(authorization.authorizationId);
+      await adapter.voidAuthorization(authorization.authorizationId, `vrd_${verdictId}`);
       await store.markAuthorizationStatus?.(authorization.authorizationId, 'VOIDED');
       await store.markCheckout('SETTLED');
       return { authorization, verdict, verdictId, settlement: 'voided' };

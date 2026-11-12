@@ -1,0 +1,16 @@
+{
+  "run": "2026-11-12",
+  "M2.3": {
+    "vault_module": "createSetupToken returns the payer approval link and never a vault id; exchangeSetupToken returns the vault id and stores it on principal",
+    "unit_tests": "3/3 (body shape, exchange, error surfaced)",
+    "live_setup_token": "PAYER_ACTION_REQUIRED with an approve link from /api/vault/setup-token",
+    "routes": "POST /api/vault/setup-token, POST /api/vault/payment-token (stores vault id server-side, responds only {status:ACTIVE})"
+  },
+  "M2.4": {
+    "settle": "verdict is stored first; CAPTURE captures, VOID voids, ESCALATE does neither",
+    "idempotency": "every money call carries vrd_<verdictId>",
+    "amount_guard": "an authorization whose amount differs from the sealed cart is refused before any capture/void and the checkout is NEEDS_ATTENTION",
+    "db_guards": "UPDATE to CAPTURED without a verdict raises R004 (17/17 DB tests)"
+  },
+  "gates": {"tests": 84, "bench": "55/55 p95 0.187ms"}
+}

@@ -73,6 +73,23 @@ if (!connectionString) {
     await assert.rejects(db.query('DELETE FROM verdict'), /append-only/);
   });
 
+  test('a stored authorization cannot be updated to CAPTURED without a verdict', async () => {
+    const authorizationId = `aut_${randomUUID()}`;
+    await db.query(
+      `INSERT INTO paypal_authorization (id, purpose, checkout_id, order_id, authorization_id,
+         amount_minor, currency, status, idempotency_key)
+       VALUES ($1,'PURCHASE',$2,$3,$4,18900,'USD','AUTHORIZED',$5)`,
+      [authorizationId, ids.checkout, `ord_${randomUUID()}`, `pa_${randomUUID()}`, randomUUID()],
+    );
+    await assert.rejects(
+      db.query(
+        `UPDATE paypal_authorization SET status = 'CAPTURED', captured_minor = 18900 WHERE id = $1`,
+        [authorizationId],
+      ),
+      /R004/,
+    );
+  });
+
   test('a capture cannot be recorded without a stored verdict', async () => {
     await assert.rejects(
       db.query(

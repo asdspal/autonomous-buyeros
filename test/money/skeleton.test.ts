@@ -96,6 +96,8 @@ test('skeleton order is authorize -> verdict stored -> void', async () => {
     adapter.calls.map((call) => call.action),
     ['createAuthorization', 'voidAuthorization'],
   );
+  const voidCall = adapter.calls[1];
+  assert.equal(voidCall && 'idempotencyKey' in voidCall ? voidCall.idempotencyKey : null, 'vrd_vrd_skeleton0001');
   assert.deepEqual(store.events.slice(-1), ['checkout:SETTLED']);
 });
 
@@ -126,4 +128,42 @@ test('a compliant cart captures and never voids', async () => {
 
   assert.equal(result.verdict.decision, 'CAPTURE');
   assert.deepEqual(journal, ['authorize', 'verdict', 'verdict-stored', 'capture']);
+  const captureCall = adapter.calls[1];
+  assert.equal(
+    captureCall && 'idempotencyKey' in captureCall ? captureCall.idempotencyKey : null,
+    'vrd_vrd_skeleton0001',
+  );
+});
+
+test('an authorization whose amount differs from the sealed cart is refused before any money call', async () => {
+  const journal: string[] = [];
+  const adapter = new RecordingAdapter(
+    {
+      orderId: 'ord_skeleton0003',
+      authorizationId: 'aut_skeleton0003',
+      status: 'AUTHORIZED',
+      amountMinor: 1,
+      currency: 'USD',
+    },
+    journal,
+  );
+  const store = memoryStore(journal);
+  await assert.rejects(
+    runCheckout({
+      mandate,
+      cart: cart(18900),
+      catalog,
+      usedNonces: new Set(),
+      nowEpoch: NOW,
+      adapter,
+      store,
+      journal,
+    }),
+    /AMOUNT_MISMATCH/,
+  );
+  assert.deepEqual(
+    adapter.calls.map((call) => call.action),
+    ['createAuthorization'],
+  );
+  assert.deepEqual(store.events.slice(-1), ['checkout:NEEDS_ATTENTION']);
 });

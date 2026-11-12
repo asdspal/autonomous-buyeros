@@ -25,15 +25,16 @@ export interface PayPalAdapter {
     authorizationId: string,
     amountMinor: number,
     finalCapture: boolean,
+    idempotencyKey?: string,
   ): Promise<CaptureResult>;
-  voidAuthorization(authorizationId: string): Promise<void>;
+  voidAuthorization(authorizationId: string, idempotencyKey?: string): Promise<void>;
   getAuthorization(authorizationId: string): Promise<AuthorizationRecord | null>;
 }
 
 export type AdapterCall =
   | { action: 'createAuthorization'; input: CreateAuthorizationInput }
-  | { action: 'captureAuthorization'; authorizationId: string; amountMinor: number; finalCapture: boolean }
-  | { action: 'voidAuthorization'; authorizationId: string }
+  | { action: 'captureAuthorization'; authorizationId: string; amountMinor: number; finalCapture: boolean; idempotencyKey?: string }
+  | { action: 'voidAuthorization'; authorizationId: string; idempotencyKey?: string }
   | { action: 'getAuthorization'; authorizationId: string };
 
 export class RecordingAdapter implements PayPalAdapter {
@@ -57,14 +58,21 @@ export class RecordingAdapter implements PayPalAdapter {
     authorizationId: string,
     amountMinor: number,
     finalCapture: boolean,
+    idempotencyKey?: string,
   ): Promise<CaptureResult> {
-    this.calls.push({ action: 'captureAuthorization', authorizationId, amountMinor, finalCapture });
+    this.calls.push({
+      action: 'captureAuthorization',
+      authorizationId,
+      amountMinor,
+      finalCapture,
+      idempotencyKey,
+    });
     this.journal.push('capture');
     return { captureId: 'cap_recorded', status: 'COMPLETED', amountMinor };
   }
 
-  async voidAuthorization(authorizationId: string): Promise<void> {
-    this.calls.push({ action: 'voidAuthorization', authorizationId });
+  async voidAuthorization(authorizationId: string, idempotencyKey?: string): Promise<void> {
+    this.calls.push({ action: 'voidAuthorization', authorizationId, idempotencyKey });
     this.journal.push('void');
   }
 

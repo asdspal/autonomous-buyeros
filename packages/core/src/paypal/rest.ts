@@ -135,6 +135,7 @@ export class PayPalRestAdapter implements PayPalAdapter {
     authorizationId: string,
     amountMinor: number,
     finalCapture: boolean,
+    idempotencyKey?: string,
   ): Promise<CaptureResult> {
     const capture = await this.call<{
       id?: string;
@@ -147,7 +148,7 @@ export class PayPalRestAdapter implements PayPalAdapter {
         amount: { currency_code: 'USD', value: formatMinor(amountMinor) },
         final_capture: finalCapture,
       },
-      crypto.randomUUID(),
+      idempotencyKey ?? crypto.randomUUID(),
     );
     return {
       captureId: capture.id ?? '',
@@ -156,7 +157,7 @@ export class PayPalRestAdapter implements PayPalAdapter {
     };
   }
 
-  async voidAuthorization(authorizationId: string): Promise<void> {
+  async voidAuthorization(authorizationId: string, idempotencyKey?: string): Promise<void> {
     const token = await this.accessToken();
     const response = await fetch(
       `${this.config.baseUrl}/v2/payments/authorizations/${authorizationId}/void`,
@@ -165,7 +166,7 @@ export class PayPalRestAdapter implements PayPalAdapter {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'PayPal-Request-Id': crypto.randomUUID(),
+          'PayPal-Request-Id': idempotencyKey ?? crypto.randomUUID(),
         },
         body: '{}',
       },
