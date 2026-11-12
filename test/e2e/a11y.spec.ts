@@ -7,7 +7,7 @@ const axeSource = readFileSync(
   'utf8',
 );
 
-const ROUTES = ['/', '/cases'];
+const ROUTES = ['/', '/cases', '/mandates/new'];
 
 test.describe('accessibility', () => {
   for (const route of ROUTES) {

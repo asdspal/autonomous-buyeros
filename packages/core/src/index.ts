@@ -3,6 +3,7 @@ export * from './keys.js';
 export * from './mandate/jcs.js';
 export * from './mandate/schema.js';
 export * from './mandate/verify.js';
+export * from './mandate/signing.js';
 export * from './mandate/compiler.js';
 export * from './mandate/templates.js';
 export * from './llm/client.js';
