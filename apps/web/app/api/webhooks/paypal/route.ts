@@ -115,7 +115,7 @@ export async function POST(request: Request) {
       [event.id],
     );
     await client.query('COMMIT');
-  } catch (error) {
+  } catch {
     await client.query('ROLLBACK');
     await db.query(
       `UPDATE webhook_event SET status = 'FAILED', attempts = attempts + 1 WHERE id = $1`,
