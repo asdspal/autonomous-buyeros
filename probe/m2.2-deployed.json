@@ -1,0 +1,21 @@
+{
+  "run": "2026-11-12",
+  "demo_url": "https://buyeros-web.onrender.com",
+  "local_probe": {
+    "agent_rate_limit": "10 x 200 then 1 x 429 with Retry-After 56s",
+    "bad_agent_signature": "403 MV-R016",
+    "anonymous_checkout": "401",
+    "foreign_origin": "403",
+    "compile_without_session": "401",
+    "magic_link": "200 with link in DEMO_MODE",
+    "verify": "307 with buyeros_session cookie",
+    "compile_with_session": "200",
+    "db_rate_limit_tests": "2/2 (fixed window allows the limit then refuses; identities do not share)"
+  },
+  "deployed_checks": {
+    "anonymous_checkout": 401,
+    "foreign_origin": 403,
+    "compile_without_session": 401
+  },
+  "migration": "0003_rate_limits applied to the Render database"
+}
