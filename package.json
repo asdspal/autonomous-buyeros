@@ -12,7 +12,7 @@
     "node": ">=22 <27"
   },
   "scripts": {
-    "typecheck": "node node_modules/typescript7/bin/tsc -p tsconfig.json --noEmit",
+    "typecheck": "npm run build -w @buyeros/core && node node_modules/typescript7/bin/tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "build": "npm run build:core && npm run build:web",
     "test": "node --test --test-concurrency=1 \"dist/test/**/*.test.js\"",
