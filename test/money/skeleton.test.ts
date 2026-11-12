@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { RecordingAdapter } from '../../packages/core/src/paypal/adapter.js';
 import { runCheckout } from '../../packages/core/src/checkout/orchestrator.js';
-import { seal } from '../../packages/core/src/canonical.js';
+import { seal } from '../../packages/core/src/cart/seal.js';
 import type { Cart, Catalog, Mandate, Verdict } from '../../packages/core/src/types.js';
 
 const NOW = 1_850_000_000;

@@ -1,0 +1,17 @@
+{
+  "items": [],
+  "links": [
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes?page_size=20",
+      "rel": "self",
+      "method": "GET",
+      "encType": "application/json"
+    },
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes?page_size=20",
+      "rel": "first",
+      "method": "GET",
+      "encType": "application/json"
+    }
+  ]
+}

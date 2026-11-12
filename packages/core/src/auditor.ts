@@ -1,4 +1,4 @@
-import { digest } from './canonical.js';
+import { digest } from './mandate/hash.js';
 import { R } from './reason-codes.js';
 import type {
   Cart,

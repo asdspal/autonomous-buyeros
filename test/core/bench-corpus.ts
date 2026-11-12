@@ -1,4 +1,4 @@
-import { seal } from '../../packages/core/src/canonical.js';
+import { seal } from '../../packages/core/src/cart/seal.js';
 import type { Cart, Catalog, Decision, Mandate } from '../../packages/core/src/types.js';
 
 export const BASE_MANDATE: Mandate = {

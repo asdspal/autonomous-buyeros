@@ -1,5 +1,6 @@
 import { createPublicKey, verify as cryptoVerify } from 'node:crypto';
-import { digest, sha256Hex } from './canonical.js';
+import { digest } from './mandate/hash.js';
+import { sha256Hex } from './mandate/jcs.js';
 import { R } from './reason-codes.js';
 import { GuardError } from './types.js';
 import type { Clause, Result } from './types.js';

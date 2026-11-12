@@ -17,21 +17,13 @@ export function canonical(value: unknown): string {
   if (typeof value === 'string') return JSON.stringify(value);
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
   if (typeof value === 'object') {
+    const proto = Object.getPrototypeOf(value);
+    if (proto !== Object.prototype && proto !== null) {
+      throw new TypeError(`unsupported type for canonicalisation: ${Object.prototype.toString.call(value)}`);
+    }
     const rec = value as Record<string, unknown>;
     const keys = Object.keys(rec).sort();
     return '{' + keys.map((k) => JSON.stringify(k) + ':' + canonical(rec[k])).join(',') + '}';
   }
   throw new TypeError(`unsupported type for canonicalisation: ${typeof value}`);
-}
-
-export function digest(value: unknown): string {
-  return 'sha256:' + sha256Hex(canonical(value));
-}
-
-export function seal<T extends object>(value: T): T & { cart_hash: string } {
-  const rest: Record<string, unknown> = {};
-  for (const [key, entry] of Object.entries(value)) {
-    if (key !== 'cart_hash') rest[key] = entry;
-  }
-  return { ...value, cart_hash: digest(rest) };
 }

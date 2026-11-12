@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { canonical } from '../../packages/core/src/canonical.js';
+import { canonical } from '../../packages/core/src/mandate/jcs.js';
 
 function readPackage(): Record<string, unknown> {
   return JSON.parse(
