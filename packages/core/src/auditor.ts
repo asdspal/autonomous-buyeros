@@ -1,5 +1,7 @@
 import { digest } from './mandate/hash.js';
 import { R } from './reason-codes.js';
+import { evaluateOperator } from './auditor/operators.js';
+import { resolveAttribute } from './auditor/attributes.js';
 import type {
   Cart,
   Catalog,
@@ -17,40 +19,6 @@ const UNKNOWN: Result = 'UNKNOWN';
 const CAPTURE: Decision = 'CAPTURE';
 const VOID: Decision = 'VOID';
 const ESCALATE: Decision = 'ESCALATE';
-
-function compare(op: string, observed: unknown, expected: unknown): Result {
-  if (observed === null || observed === undefined) return UNKNOWN;
-  switch (op) {
-    case 'eq':
-      return observed === expected ? PASS : FAIL;
-    case 'in':
-      return Array.isArray(expected) && expected.includes(observed) ? PASS : FAIL;
-    case 'gte':
-      return typeof observed === 'number' && typeof expected === 'number'
-        ? observed >= expected ? PASS : FAIL
-        : UNKNOWN;
-    case 'lte':
-      return typeof observed === 'number' && typeof expected === 'number'
-        ? observed <= expected ? PASS : FAIL
-        : UNKNOWN;
-    case 'true':
-      return observed === true ? PASS : FAIL;
-    default:
-      throw new Error(`unknown operator ${op}`);
-  }
-}
-
-function resolveAttribute(
-  cart: Cart,
-  catalog: Catalog | null,
-  name: string,
-): { observed: unknown; source: string } {
-  const attrs = (catalog?.attrs ?? {}) as Record<string, unknown>;
-  if (name in attrs) return { observed: attrs[name], source: 'catalog' };
-  const claimed = cart.attrs_claimed ?? {};
-  if (name in claimed) return { observed: null, source: 'merchant_claim_untrusted' };
-  return { observed: null, source: 'absent' };
-}
 
 export function evaluate(
   mandate: Mandate,
@@ -185,7 +153,7 @@ export function evaluate(
       if (!entry) continue;
       const [op, expected] = entry;
       const { observed, source } = resolveAttribute(cart, catalog, name);
-      const result = compare(op, observed, expected);
+      const result = evaluateOperator(op, observed, expected);
       add(
         `C-2${index}-${name}`,
         `${name} ${op} ${JSON.stringify(expected)}`,

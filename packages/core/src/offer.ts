@@ -1,6 +1,5 @@
 import { createPublicKey, verify as cryptoVerify } from 'node:crypto';
 import { digest } from './mandate/hash.js';
-import { sha256Hex } from './mandate/jcs.js';
 import { R } from './reason-codes.js';
 import { GuardError } from './types.js';
 import type { Clause, Result } from './types.js';
@@ -29,12 +28,8 @@ export interface Quote {
   policy_version: string;
 }
 
-export interface PublicJwk {
-  kty: string;
-  crv: string;
-  x: string;
-  y: string;
-}
+export type { PublicJwk } from './keys.js';
+import type { PublicJwk } from './keys.js';
 
 export interface OfferDocument {
   vct: string;
@@ -127,9 +122,9 @@ export function auditAgainstOffer(
   return checkoutTotalMinor === offerTotalMinor ? 'PASS' : 'MV-R021';
 }
 
-export function thumbprint(jwk: PublicJwk): string {
-  return 'jkt:' + sha256Hex(JSON.stringify({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y }));
-}
+import { rfc7638Thumbprint } from './keys.js';
+export { rfc7638Thumbprint as thumbprint } from './keys.js';
+const thumbprint = rfc7638Thumbprint;
 
 export function offerTotalMinor(offer: OfferDocument): number {
   return offer.qty * offer.unit_price_minor + offer.shipping_minor;

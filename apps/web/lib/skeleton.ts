@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
+import { sha256Hex } from '@buyeros/core';
 import type {
   AuthorizationRecord,
   CheckoutStore,
@@ -10,7 +11,7 @@ import type {
 } from '@buyeros/core';
 
 const PRINCIPAL_ID = 'prn_demo';
-const AGENT_ID = 'agt_demo';
+const AGENT_ID = `agt_${sha256Hex('jkt:agentdemo0001').slice(0, 12)}`;
 const MERCHANT_ID = 'mch_demo';
 const MANDATE_ID = 'mdt_skeleton0001';
 const DOMAIN = 'shop-a.example';
@@ -57,8 +58,12 @@ export async function ensureSkeletonWorld(): Promise<void> {
   await db.query(
     `INSERT INTO agent (id, principal_id, display_name, key_thumbprint)
      VALUES ($1, $2, 'reference agent', 'jkt:agentdemo0001')
-     ON CONFLICT (id) DO NOTHING`,
+     ON CONFLICT (key_thumbprint) DO NOTHING`,
     [AGENT_ID, PRINCIPAL_ID],
+  );
+  const agent = await db.query<{ id: string }>(
+    'SELECT id FROM agent WHERE key_thumbprint = $1',
+    ['jkt:agentdemo0001'],
   );
   await db.query(
     `INSERT INTO merchant (id, domain, display_name, execution_class)
@@ -73,7 +78,7 @@ export async function ensureSkeletonWorld(): Promise<void> {
      ) VALUES ($1,$2,$3,'ACTIVE','USD',25000,20000,1,'{}'::jsonb,'n_skeleton_000001',
                1793000000,1795592000,'skeleton')
      ON CONFLICT (id) DO NOTHING`,
-    [MANDATE_ID, PRINCIPAL_ID, AGENT_ID],
+    [MANDATE_ID, PRINCIPAL_ID, agent.rows[0]!.id],
   );
 }
 
