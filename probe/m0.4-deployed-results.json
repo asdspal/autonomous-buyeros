@@ -1,0 +1,20 @@
+{
+  "run": "2026-11-12",
+  "demo_url": "https://buyeros-web.onrender.com",
+  "service_id": "srv-dbqqn356e07s7380iikg",
+  "database": "Render Postgres 17 free, ohio, external sslmode=require, ipAllowList 0.0.0.0/0",
+  "migrations": "2 applied to the Render database (0001, 0002)",
+  "smoke": {"status": 200, "database": "up", "correlation_echo": true},
+  "a11y": "6/6 pass against the deployed URL (axe WCAG 2.2 AA + keyboard)",
+  "walking_skeleton": {
+    "checkout_id": "ckt_88671b0f-b272-4e3c-9ded-db7a19bc7411",
+    "verdict_id": "vrd_a3a6dc9f-04e4-413e-8a0c-2b19fa830c68",
+    "decision": "VOID",
+    "reason_codes": ["MV-R002"],
+    "paypal_order": "6HA038117N2499104",
+    "paypal_authorization": "05456923Y8880532J",
+    "authorization_after": "VOIDED",
+    "checkout_after": "SETTLED"
+  },
+  "webhook": {"id": "8X964384FH940890F", "url": "https://buyeros-web.onrender.com/api/webhooks/paypal", "note": "receiver lands in M2.8"}
+}

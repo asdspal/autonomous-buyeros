@@ -1,6 +1,6 @@
 databases:
   - name: buyeros-db
-    plan: basic-256mb
+    plan: free
     databaseName: buyeros
     user: buyeros
 
@@ -8,7 +8,7 @@ services:
   - type: web
     name: buyeros-web
     runtime: docker
-    plan: standard
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
