@@ -21,7 +21,7 @@
     "db:test": "node --test --test-concurrency=1 \"dist/test/db/**/*.test.js\"",
     "test:contract": "node --test \"dist/test/contract/**/*.test.js\"",
     "build:web": "npm run build -w @buyeros/web",
-    "build:core": "node node_modules/typescript7/bin/tsc -p tsconfig.json && npm run build -w @buyeros/core",
+    "build:core": "npm run build -w @buyeros/core && node node_modules/typescript7/bin/tsc -p tsconfig.json",
     "dev": "npm run dev -w @buyeros/web",
     "smoke": "node scripts/smoke.mjs"
   },

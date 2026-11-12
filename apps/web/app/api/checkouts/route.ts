@@ -1,11 +1,17 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { PayPalRestAdapter, runCheckout, seal } from '@buyeros/core';
+import { PayPalRestAdapter, canonical, runCheckout, seal, sha256Hex } from '@buyeros/core';
 import { correlationId, withCorrelation } from '../../../lib/correlation';
+import {
+  beginIdempotency,
+  clearIdempotency,
+  finishIdempotency,
+} from '../../../lib/idempotency';
 import {
   ensureSkeletonWorld,
   insertCheckout,
   pgCheckoutStore,
+  poolInstance,
   skeletonCart,
   skeletonCatalog,
   skeletonMandate,
@@ -35,6 +41,33 @@ export async function POST(request: Request) {
   if (missing.length) {
     return withCorrelation(
       NextResponse.json({ error: 'CONFIG_MISSING', missing }, { status: 500 }),
+      id,
+    );
+  }
+
+  const requestHash = sha256Hex(canonical(body));
+  const idempotency = await beginIdempotency(poolInstance(), 'checkout', requestKey, requestHash);
+  if (idempotency.state === 'replay') {
+    return withCorrelation(
+      NextResponse.json(idempotency.body, { status: idempotency.code }),
+      id,
+    );
+  }
+  if (idempotency.state === 'in_flight') {
+    return withCorrelation(
+      NextResponse.json(
+        { error: 'IDEMPOTENT_RETRY_IN_FLIGHT', requestKey },
+        { status: 409, headers: { 'retry-after': '1' } },
+      ),
+      id,
+    );
+  }
+  if (idempotency.state === 'reused') {
+    return withCorrelation(
+      NextResponse.json(
+        { error: 'IDEMPOTENCY_KEY_REUSED', message: 'the request key was used with another body' },
+        { status: 409 },
+      ),
       id,
     );
   }
@@ -82,9 +115,11 @@ export async function POST(request: Request) {
       },
       evidence_hash: result.verdict.evidence_hash,
     };
+    await finishIdempotency(poolInstance(), 'checkout', requestKey, 200, body, checkout.id);
     console.log(JSON.stringify({ level: 'info', msg: 'checkout.decided', correlation_id: id, ...body }));
     return withCorrelation(NextResponse.json(body, { status: 200 }), id);
   } catch (error) {
+    await clearIdempotency(poolInstance(), 'checkout', requestKey).catch(() => undefined);
     const message = error instanceof Error ? error.message : 'UNKNOWN';
     console.error(JSON.stringify({ level: 'error', msg: 'checkout.failed', correlation_id: id, error: message }));
     return withCorrelation(
