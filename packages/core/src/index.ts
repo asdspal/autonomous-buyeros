@@ -1,5 +1,7 @@
 export * from './types.js';
+export * from './mandate/jcs.js';
 export * from './mandate/hash.js';
+export * from './cart/seal.js';
 export * from './reason-codes.js';
 export * from './auditor.js';
 export * from './offer.js';
