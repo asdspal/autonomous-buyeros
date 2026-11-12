@@ -1,0 +1,32 @@
+{
+  "run": "2026-11-12T13:13:42.418Z",
+  "model": "accounts/fireworks/models/deepseek-v4p1-flash-1017",
+  "reasoning_effort": "none",
+  "ms": {
+    "ok": 3351
+  },
+  "ok": {
+    "status": "ok",
+    "source": "model",
+    "budget_total_minor": 25000,
+    "meter_total_minor": 5000,
+    "item": "rug",
+    "attrs": {
+      "machine_washable": {
+        "true": true
+      }
+    }
+  },
+  "refused": {
+    "status": "refused",
+    "missing": [
+      "item",
+      "budget",
+      "washable",
+      "returnable",
+      "shipping",
+      "policy"
+    ],
+    "source": "model"
+  }
+}

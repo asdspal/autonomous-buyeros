@@ -1,0 +1,86 @@
+{
+  "id": "A-S04",
+  "class": "shipping",
+  "mandate": {
+    "mandate_id": "mdt_bench000000001",
+    "exp": 1900000000,
+    "nonce": "nonce-bench-0001",
+    "constraints": {
+      "budget": {
+        "currency": "USD",
+        "total_minor": 25000,
+        "per_txn_minor": 20000,
+        "max_txns": 1
+      },
+      "merchants": {
+        "mode": "allowlist",
+        "domain_hashes": [
+          "shop-a.example",
+          "shop-b.example"
+        ]
+      },
+      "items": [
+        {
+          "spec_id": "rug",
+          "max_qty": 1,
+          "required_attrs": {
+            "machine_washable": {
+              "true": true
+            },
+            "return_window_days": {
+              "gte": 30
+            },
+            "material": {
+              "in": [
+                "cotton",
+                "wool"
+              ]
+            }
+          }
+        }
+      ],
+      "shipping": {
+        "deadline_days": 10
+      },
+      "unknown_attribute_policy": "escalate",
+      "refundability": {
+        "min": "returnable"
+      },
+      "metering": {
+        "currency": "USD",
+        "total_minor": 300,
+        "per_call_minor": 20,
+        "max_calls": 40
+      }
+    }
+  },
+  "cart": {
+    "product_id": "ch3_rug_001",
+    "merchant_domain": "shop-a.example",
+    "unit_price_minor": 18900,
+    "qty": 1,
+    "currency": "USD",
+    "line_items": [],
+    "shipping_days": 400,
+    "refundable": true,
+    "attrs_claimed": {
+      "machine_washable": true,
+      "return_window_days": 30,
+      "material": "cotton"
+    },
+    "cart_hash": "sha256:356059b1e5a563d6cb744c13ff2b338b43e865e95a6053c59f9d9a11ce6b5340"
+  },
+  "catalog": {
+    "product_id": "ch3_rug_001",
+    "merchant_domain": "shop-a.example",
+    "attrs": {
+      "machine_washable": true,
+      "return_window_days": 30,
+      "material": "cotton"
+    }
+  },
+  "expect": "VOID",
+  "expectCode": "MV-R011",
+  "note": "shipping 400 days",
+  "provenance": "synthetic"
+}

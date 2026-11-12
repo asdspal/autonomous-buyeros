@@ -1,0 +1,24 @@
+{
+  "run": "2026-11-12T13:07:51.480Z",
+  "query": "machine washable area rug",
+  "product_id": "YDTgwTQ",
+  "merchant": "rugs-direct.com",
+  "price_minor": 4400,
+  "currency": "USD",
+  "attributes": {
+    "material": "polyester",
+    "returnWindowDays": null,
+    "washable": true
+  },
+  "present": {
+    "material": true,
+    "returnWindowDays": false,
+    "washable": true
+  },
+  "record_hash": "sha256:1ccc77bd9978f34dd131a317822c619c4682b81f97b543070d596dfc1ada1beb",
+  "source_fields": {
+    "material": "structured_attributes[\"rug-material\"] || materials[0]",
+    "washable": "structured_attributes[\"care-instructions\"] || key_features",
+    "returnWindowDays": "title/description regex \"N-day return\""
+  }
+}

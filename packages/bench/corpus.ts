@@ -1,5 +1,5 @@
-import { seal } from '../../packages/core/src/cart/seal.js';
-import type { Cart, Catalog, Decision, Mandate } from '../../packages/core/src/types.js';
+import { seal } from '@buyeros/core';
+import type { Cart, Catalog, Decision, Mandate } from '@buyeros/core';
 
 export const BASE_MANDATE: Mandate = {
   mandate_id: 'mdt_bench000000001',

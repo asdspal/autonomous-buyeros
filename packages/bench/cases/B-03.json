@@ -1,0 +1,86 @@
+{
+  "id": "B-03",
+  "class": "benign",
+  "mandate": {
+    "mandate_id": "mdt_bench000000001",
+    "exp": 1900000000,
+    "nonce": "nonce-bench-0001",
+    "constraints": {
+      "budget": {
+        "currency": "USD",
+        "total_minor": 25000,
+        "per_txn_minor": 20000,
+        "max_txns": 1
+      },
+      "merchants": {
+        "mode": "allowlist",
+        "domain_hashes": [
+          "shop-a.example",
+          "shop-b.example"
+        ]
+      },
+      "items": [
+        {
+          "spec_id": "rug",
+          "max_qty": 1,
+          "required_attrs": {
+            "machine_washable": {
+              "true": true
+            },
+            "return_window_days": {
+              "gte": 30
+            },
+            "material": {
+              "in": [
+                "cotton",
+                "wool"
+              ]
+            }
+          }
+        }
+      ],
+      "shipping": {
+        "deadline_days": 10
+      },
+      "unknown_attribute_policy": "escalate",
+      "refundability": {
+        "min": "returnable"
+      },
+      "metering": {
+        "currency": "USD",
+        "total_minor": 300,
+        "per_call_minor": 20,
+        "max_calls": 40
+      }
+    }
+  },
+  "cart": {
+    "product_id": "ch3_rug_001",
+    "merchant_domain": "shop-a.example",
+    "unit_price_minor": 20000,
+    "qty": 1,
+    "currency": "USD",
+    "line_items": [],
+    "shipping_days": 4,
+    "refundable": true,
+    "attrs_claimed": {
+      "machine_washable": true,
+      "return_window_days": 30,
+      "material": "cotton"
+    },
+    "cart_hash": "sha256:80cf4a54f767a2ae484b4db85f76cfe66b536f5ad4e80e72a87ff2ec48e1005f"
+  },
+  "catalog": {
+    "product_id": "ch3_rug_001",
+    "merchant_domain": "shop-a.example",
+    "attrs": {
+      "machine_washable": true,
+      "return_window_days": 30,
+      "material": "cotton"
+    }
+  },
+  "expect": "CAPTURE",
+  "expectCode": "",
+  "note": "boundary: unit price exactly at per-txn cap",
+  "provenance": "synthetic"
+}

@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { evaluate } from '../../packages/core/src/auditor.js';
 import { seal } from '../../packages/core/src/cart/seal.js';
-import { buildCases } from './bench-corpus.js';
+import { buildCases } from '../../packages/bench/corpus.js';
 
 const NOW = 1_850_000_000;
 
