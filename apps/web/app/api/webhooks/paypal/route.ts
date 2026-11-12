@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     `INSERT INTO webhook_event (
        id, event_type, resource_type, resource_id, transmission_id, signature_verified,
        status, payload_hash
-     ) VALUES ($1,$2,$3,$4,$5,true,'RECEIVED',$6)
+     ) VALUES ($1,$2,$3,$4,$5,1,'RECEIVED',$6)
      ON CONFLICT (id) DO NOTHING RETURNING id`,
     [
       event.id,
