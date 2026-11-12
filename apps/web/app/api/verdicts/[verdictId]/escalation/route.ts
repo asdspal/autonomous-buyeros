@@ -29,6 +29,7 @@ export async function POST(
     signature?: string;
     publicJwk?: unknown;
     nonce?: string;
+    decidedAtEpoch?: number;
   };
   if (body.action !== 'approve' && body.action !== 'decline') {
     return withCorrelation(NextResponse.json({ error: 'ACTION_REQUIRED' }, { status: 422 }), id);
@@ -64,10 +65,16 @@ export async function POST(
   }
 
   const decision = body.action === 'approve' ? 'CAPTURE' : 'VOID';
+  if (typeof body.decidedAtEpoch !== 'number') {
+    return withCorrelation(NextResponse.json({ error: 'TIMESTAMP_REQUIRED' }, { status: 422 }), id);
+  }
+  if (Math.abs(Math.floor(Date.now() / 1000) - body.decidedAtEpoch) > 300) {
+    return withCorrelation(NextResponse.json({ error: 'TIMESTAMP_STALE' }, { status: 422 }), id);
+  }
   const payload = approvalPayload({
     verdictId,
     decision,
-    decidedAtEpoch: Math.floor(Date.now() / 1000),
+    decidedAtEpoch: body.decidedAtEpoch,
     nonce: body.nonce,
   });
   const validSignature = await verifyApproval(payload, body.signature, body.publicJwk);

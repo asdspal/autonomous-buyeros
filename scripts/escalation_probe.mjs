@@ -102,7 +102,7 @@ const signApproval = (payload) => cryptoSign('sha256', Buffer.from(canonical(pay
 
 async function resolve(setup, action) {
   const payload = { verdictId: setup.verdictId, decision: action === 'approve' ? 'CAPTURE' : 'VOID', decidedAtEpoch: Math.floor(Date.now() / 1000), nonce: `n_${randomUUID().replaceAll('-', '')}` };
-  return post(`/api/verdicts/${setup.verdictId}/escalation`, { action, signature: signApproval(payload), publicJwk: jwk, nonce: payload.nonce });
+  return post(`/api/verdicts/${setup.verdictId}/escalation`, { action, signature: signApproval(payload), publicJwk: jwk, nonce: payload.nonce, decidedAtEpoch: payload.decidedAtEpoch });
 }
 
 const declineSetup = await setupEscalation(1000);
